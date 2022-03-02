@@ -37,7 +37,7 @@ def task6():
 
     total_pop = int(sum([reproduce_table[256 - i] * data.count(i) for i in range(8)]))
     print(total_pop)
-    write_sol(total_pop, 1)
+    write_sol(total_pop, 2)
 
 
 task6()
