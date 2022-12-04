@@ -6,7 +6,7 @@ def solveA(file_name):
     with open(file_name) as my_file:
         # print(my_file.read())
 
-        map_win = {0: 3, 1: 6, 2: 0}
+        map_win = {0: 3, 1: 6, 2: 0} # 0 = draw, 1 = win, 2 = lose
         total_score = 0
         for line in my_file:
             if re.match('[A-C] [X-Z]\n?', line):
@@ -24,7 +24,7 @@ def solveB(file_name):
     with open(file_name) as my_file:
         # print(my_file.read())
 
-        map_win = {0: 3, 1: 6, 2: 0}
+        map_win = {0: 3, 1: 6, 2: 0} # 0 = draw, 1 = win, 2 = lose
         total_score = 0
         for line in my_file:
             if re.match('[A-C] [X-Z]\n?', line):
