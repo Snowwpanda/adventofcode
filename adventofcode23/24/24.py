@@ -158,9 +158,42 @@ def triangulate_with_3(hailstormes):
         t2 = estimate_t2_log(start, hailstrom2, hailstrom3)
         if t2 < 0:
             continue
-        
 
 
+def addition(param, param1):
+    return [param[0]+param1[0], param[1]+param1[1], param[2]+param1[2]]
+
+
+def product_av(proj_scalar, plane1):
+    return [proj_scalar * plane1[0], proj_scalar * plane1[1], proj_scalar * plane1[2]]
+
+
+def calcluate_intersection_3d(hailstorm1, hailstorm2):
+    pos1, vel1 = hailstorm1
+    pos2, vel2 = hailstorm2
+    t1 = ((pos2[0] - pos1[0]) * vel2[2] - (pos2[2] - pos1[2]) * vel2[0]) / (vel1[0] * vel2[2] - vel1[2] * vel2[0])
+    t2 = ((pos2[0] - pos1[0]) * vel1[2] - (pos2[2] - pos1[2]) * vel1[0]) / (vel1[0] * vel2[2] - vel1[2] * vel2[0])
+    intersection = [pos1[0] + t1 * vel1[0], pos1[1] + t1 * vel1[1], pos1[2] + t1 * vel1[2]]
+    threeD_intersection1 = [pos1[0] + t1 * vel1[0], pos1[1] + t1 * vel1[1], pos1[2] + t1 * vel1[2]]
+    threeD_intersection2 = [pos2[0] + t2 * vel2[0], pos2[1] + t2 * vel2[1], pos2[2] + t2 * vel2[2]]
+    if threeD_intersection1[0] != threeD_intersection2[0] or threeD_intersection1[1] != threeD_intersection2[1] or threeD_intersection1[2] != threeD_intersection2[2]:
+        print(f"intersection not the same: {threeD_intersection1}, {threeD_intersection2}")
+    return intersection, t1, t2
+
+
+def find_point_on_planeintersect(hailstorm1, hailstorm3, plane):
+    # project onto plane1
+    hailstorm3_start_relative_to_plane = difference(hailstorm3[0], hailstorm1[0])
+    proj_scalar_start = scalarproduct(hailstorm3_start_relative_to_plane, plane)
+    hailstorm3_start_proj = difference(hailstorm3[0], product_av(proj_scalar_start, plane))
+
+    hailstorm3_end = addition(hailstorm3[0], hailstorm3[1])
+    hailstorm3_end_relative_to_plane = difference(hailstorm3_end, hailstorm1[0])
+    proj_scalar_end = scalarproduct(hailstorm3_end_relative_to_plane, plane)
+    hailstorm3_end_proj = difference(hailstorm3_end, product_av(proj_scalar_end, plane))
+
+    intersection, t1, t2 = calcluate_intersection_3d(hailstorm3, [hailstorm3_start_proj, difference(hailstorm3_end_proj , hailstorm3_start_proj)])
+    return intersection, t1
 
 def solveB(file_name):
     with open(file_name) as my_file:
@@ -177,9 +210,41 @@ def solveB(file_name):
         pos = [int(x.strip()) for x in pos.split(',')]
         vel = [int(x.strip()) for x in vel.split(',')]
         hailstormes.append([pos, vel])
+    hailstormes.append([[15, 16, 16],[-2,1,-2]])
 
     # try to triangulate with 3
-    triangulate_with_3(hailstormes)
+    pairs= []
+    for i in range(len(hailstormes)):
+        for j in range(i+1, len(hailstormes)):
+            hailstorm1 = hailstormes[i]
+            hailstorm2 = hailstormes[j]
+            if parallel(hailstorm1[1], hailstorm2[1]):
+                print(f"parallel: {i}, {j}")
+                pairs.append([i,j])
+
+    print(f"pairs: {pairs} -> assuming larger than 2")
+    if len(pairs) < 2:
+        print(f"not enough pairs")
+        return
+
+    # find the intersection of the two pairs
+    hailstorm1 = hailstormes[pairs[0][0]]
+    hailstorm21 = difference(hailstormes[pairs[0][1]][0], hailstorm1[0])
+    plane1 = crossproduct(hailstorm1[1], hailstorm21)
+
+    hailstorm3 = hailstormes[pairs[1][0]]
+    hailstorm43 = difference(hailstormes[pairs[1][1]][0], hailstorm3[0])
+    plane2 = crossproduct(hailstorm3[1], hailstorm43)
+
+    rocktraj = crossproduct(plane1, plane2)
+    rockint1, t1 = find_point_on_planeintersect(hailstorm3,hailstorm1, plane2)
+    rockint2, t2 = find_point_on_planeintersect( hailstorm1,hailstorm3, plane1)
+
+
+
+
+
+
 
 
 
