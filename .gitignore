@@ -1,0 +1,3 @@
+# Ignore potiential virtual environments and debugging files
+adventofcode24/.venv/
+adventofcode24/launch.json
