@@ -28,6 +28,8 @@ def solveA(file_name):
 
 
 
+
+
     
 def solveB(file_name):    
     # add current path
@@ -35,37 +37,25 @@ def solveB(file_name):
 
     with open(file_path) as my_file:
         # print(my_file.read())
-        lines = my_file.readlines()
-
+        # lines = my_file.readlines()
+        instructions = re.findall(r"(don't|do|mul)\((\d*)(,?)(\d*)\)", my_file.read())
     
-
-    lines = [[int(x) for x in line.split()] for line in lines]
-    # reports are safe if increasing or decreasing, differing by 1-3
-    safe_records = 0
-    
-    for line in lines:
-        if len(line) < 4:
-            safe_records += 1
-            continue
-        # testing both increasing and decreasing because easier and sequence is at least 4 long
-        for inc_dec in [1, -1]:
-            bad_levels = -1
-            for i in range(1, len(line)):
-                if (line[i] - line[i-1]) * inc_dec not in [1, 2, 3]:
-                    if bad_levels not in [-1, i-1]:
-                        break
-                    bad_levels = i
-                    if i == len(line) - 1 or (line[i+1] - line[i-1]) * inc_dec in [1, 2, 3]:
-                        continue
-                    if (i == 1 or (line[i] - line[i-2]) * inc_dec in [1, 2, 3]) and (line[i+1] - line[i]) * inc_dec in [1, 2, 3] :
-                        continue
-                    break
-            else:
-                safe_records += 1
+    sum = 0
+    do = True
+    for instruction in instructions:
+        if instruction[0] == 'do':
+            do = True
+        elif instruction[0] == 'don\'t':
+            do = False
+        else:
+            if not do or '' in instruction[1:]:
+                continue
+            first = int(instruction[1])
+            second = int(instruction[3])
+            sum += first * second
         
         
-        
-    res = safe_records
+    res = sum
 
     # Print result
     print("Answer Part 2:")
@@ -78,4 +68,4 @@ def solveB(file_name):
 if __name__ == '__main__':
     solveA('input.txt')
 
-    # solveB('input.txt')
+    solveB('input.txt')
