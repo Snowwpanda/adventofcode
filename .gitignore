@@ -2,3 +2,5 @@
 adventofcode24/.venv/
 adventofcode24/launch.json
 .idea/
+.vscode/
+.venv/
