@@ -103,44 +103,74 @@ def solveA(file_name):
     print(res)
 
 
-def add_seq(seqences, amount, table = {}):
-    for seq in seqences:
-        if seq in table:
-            table[seq] += amount
+
+
+
+pos_seq = [
+    '>A',
+    '^A',
+    'vA',
+    '<A',
+    '<vA',
+    '<^A',
+    '>vA',
+    '>^A',
+    'v<A',
+    'v>A',
+    '^<A',
+    '^>A',
+]
+
+
+
+
+map_movement = {
+    (0,0): [''],
+    (-1,0): ['<'],
+    (1,0): ['>'],
+    (0,1): ['^'],
+    (0,-1): ['v'],
+    (1,1) : ['>^','^>'],
+    (-1,-1): ['<v','v<'],
+    (1,-1): ['>v','v>'],
+    (-1,1): ['<^','^<'],
+}
+
+def max_seq_duration(seq, seq_duration):
+    pos = [0,0] 
+    cost = 0
+    for index in range(len(seq)):
+        next_symbol = seq[index]
+        next_button = button_pos[next_symbol]
+        
+        diff = (next_button[0] - pos[0], next_button[1] - pos[1])
+        # reduce diff to 1:
+        cost += max(abs(diff[0]) -1 , 0)
+        cost += max(abs(diff[1]) -1 , 0)
+        movement = (np.sign(diff[0]), np.sign(diff[1]))
+            
+        if (next_button[1] == 0 and pos[0] == -2) or (next_button[0] == -2 and pos[1] == 0): 
+            if movement == (1,-1):
+                cost += seq_duration['>vA']
+                pos = [next_button[0], next_button[1]]
+                continue
+            elif movement == (-1,-1):
+                cost += seq_duration['v<A']
+                pos = [next_button[0], next_button[1]]
+                continue
+            elif movement == (-1,1):
+                cost += seq_duration['^<A']
+                pos = [next_button[0], next_button[1]]
+                continue
+            elif movement == (1,1):
+                cost += seq_duration['>^A']
+                pos = [next_button[0], next_button[1]]
+                continue
         else:
-            table[seq] = amount
-    return table
+            cost += min([seq_duration[seq + 'A'] for seq in map_movement[movement]])
+            pos = [next_button[0], next_button[1]]
 
-
-
-def indirect_input_seq(code, memo, robots = 25):
-
-    seqences = code[:-1].split('A')
-
-    robot = add_seq(seqences, 1, {})
-
-    for i in range(robots +1):
-        next_robot = {}
-        for seq in robot:
-            seq_list = []
-            if seq in memo:
-                seq_list = memo[seq]
-            else:
-                seq_inst = indirect_input(translate_code(seq + 'A'), [0,0])
-                seq_list = seq_inst[:-1].split('A')
-                memo[seq] = seq_list
-            add_seq(seq_list, robot[seq], next_robot)
-        robot = next_robot
-        # me is robot 26
-
-    inst_len = 0
-    for seq, value in robot.items():
-        inst_len += (len(seq) + 1 ) * value
-
-    
-    return inst_len
-
-
+    return cost
 
 
 def solveB(file_name):    
@@ -155,20 +185,26 @@ def solveB(file_name):
     # leave away the 'A'
     codes = [line.strip() for line in lines]
 
-    # # test
-    # codes = ['^A']
+    # first for me
+    seq_duration = {}
+    for seq in pos_seq:
+        seq_duration[seq] = len(seq)
 
-    # translate to positions:
-    translated_codes = [translate_code(code) for code in codes]
-
-    memo = {}
-    code_complexity = {}
-    for code in codes:
-        robot = code
-        inst_len = indirect_input_seq(robot, memo, robots = 25)
-        code_complexity[code] = inst_len * int(code[:-1])
+    for robot_n in range(25):
+        next_seq_duration = {}
+        for next_seq in pos_seq:
+            next_seq_duration[next_seq] = max_seq_duration(next_seq, seq_duration)
+        seq_duration = next_seq_duration
+        if seq_duration['>^A'] <= seq_duration['^>A']:
+            print('^> is better at robot ', robot_n)
     
-    res = sum(code_complexity.values())
+    
+    complexity = [max_seq_duration(code, seq_duration) * int(code[:-1]) for code in codes]
+    
+    res = sum(complexity)
+
+    # wrong 319566753494332
+    # wrong     32889876332
 
     # Print result
     print("Answer Part 2:")
