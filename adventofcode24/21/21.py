@@ -37,7 +37,7 @@ def indirect_input(code, pos):
     # while a sequence of move and press buttons may have the same number of inputs, somehow the order is important.
     # because the '<' is the most annoying key, we want to press it first and generally want to do '<v>' moves first. But we cannot cross the empty field ad (-2,0)
     # and making a zigzag would be worse. So manual fix. 
-    # Order should be < v > ^  unless blocked, then '>', '^' and 'v' first.
+    # Order should be < v  ^ > unless blocked, then '>', '^' and 'v' first.
 
     if (button_pos[1] == 0 and pos[0] == -2) or (button_pos[0] == -2 and pos[1] == 0):        
         while pos[0] < button_pos[0]:
@@ -59,12 +59,12 @@ def indirect_input(code, pos):
         while pos[1] > button_pos[1]:
             instr += 'v'
             pos[1] -= 1
-        while pos[0] < button_pos[0]:
-            instr += '>'
-            pos[0] += 1
         while pos[1] < button_pos[1]:
             instr += '^'
             pos[1] += 1
+        while pos[0] < button_pos[0]:
+            instr += '>'
+            pos[0] += 1
     instr += 'A'
     return instr + indirect_input(code, pos)
 
@@ -195,9 +195,18 @@ def solveB(file_name):
         for next_seq in pos_seq:
             next_seq_duration[next_seq] = max_seq_duration(next_seq, seq_duration)
         seq_duration = next_seq_duration
-        if seq_duration['>^A'] <= seq_duration['^>A']:
-            print('^> is better at robot ', robot_n)
-    
+
+        
+        # < before v and ^, ^, v before >    
+        if seq_duration['<vA'] > seq_duration['v<A']:
+            print('heuristic was wrong at robot ', robot_n)
+        if seq_duration['<^A'] > seq_duration['^<A']:
+            print('heuristic was wrong at robot ', robot_n)
+        if seq_duration['>^A'] < seq_duration['^>A']:
+            print('heuristic was wrong at robot ', robot_n)
+        if seq_duration['>vA'] < seq_duration['v>A']:
+            print('heuristic was wrong at robot ', robot_n)
+
     
     complexity = [max_seq_duration(code, seq_duration) * int(code[:-1]) for code in codes]
     
