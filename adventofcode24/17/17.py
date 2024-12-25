@@ -114,55 +114,38 @@ def solveB(file_name):
             seq = re.match(r"Program: ([\d,]+)", line).groups()[0]
             program = [int(x) for x in seq.split(",")]
 
-    A_upper = 10
-    while True:
-        out = run_program(A_upper, B, C, program.copy())
-        if len(out) <= len(program):
-            A_upper *= 2
-            A_upper -= 1
-        else:
-            break
+    # A is processed in pieces of 3 bits, output is only dependend on the last 8 + 3 bits
+    possible_outputs = [0] * (2 ** (8+3))
+    for i in range(0, 2 ** (8+3)):
+        possible_outputs[i] = run_program(i, B, C, program)
 
-    def code_to_int(code):
-        c = code.copy()
-        c.reverse()
-        return int(str(''.join([str(x) for x in c])), 8)    
-    
-    program_val = code_to_int(program)
-    # try like a binary search:
-    low = 0
-    high = A_upper
-    while low < high - 1:
-        mid = (low + high) // 2
-        out = run_program(mid, B, C, program.copy())
-        if len(out) > len(program):
-            high = mid            
-        elif len(out) < len(program) or code_to_int(out) < program_val:
-            low = mid + 1
-        elif code_to_int(out) > program_val:
-            high = mid
-        else:
-            low = mid
-            break
-    
-    diff = code_to_int(out) - program_val
-    print(diff)
-    
-    for i in range(low-10000, low+10000000):
-        out = run_program(i, B, C, program.copy())
-        diff = code_to_int(out) - program_val
-        print(diff)
-        if diff == 0:
-            low = i
-            break
-      
-    res = low
+    # find A that gives the same output as the input
+    A = []
+    A = calc_A(A, possible_outputs, program)
+        
+
+
+    res = sum([ d * (8**(len(A)-i-1) ) for (i, d) in enumerate(A)])
+
     
     # Print result
     print("Answer Part 2:")
     print(res)
 
-
+def calc_A(A, possible_outputs, program):
+    if len(A) == len(program):
+        return A
+    index = len(A)
+    next_out = program[-index - 1]
+    # only dependent on last 8 bits, so last 3 groups of 3 bits
+    prefix = sum([x * (8 ** (len(A[-3:])-i)) for i, x in enumerate(A[-3:])]) % (2**11) 
+    for i in range(0, 8):
+        if possible_outputs[i + prefix][0] == next_out:
+            full_A = calc_A(A + [i], possible_outputs, program)
+            if full_A:
+                return full_A
+    else:
+        return False
 if __name__ == '__main__':
     # solveA('input.txt')
 
