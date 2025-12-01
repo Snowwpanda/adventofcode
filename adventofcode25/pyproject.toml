@@ -1,0 +1,12 @@
+[project]
+name = "adventofcode25"
+version = "0.1.0"
+description = "Advent of Code 2025 solutions"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.2"
+]
+
+[tool.uv]
+package = false
