@@ -4,3 +4,6 @@ adventofcode24/launch.json
 .idea/
 .vscode/
 .venv/
+
+# Ignore input files for all days
+**/input.txt
